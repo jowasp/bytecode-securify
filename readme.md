@@ -1,5 +1,5 @@
 #Bytecodeviewer clean up - version 3.0.0
-
+![Bytecodeviewer 3.0.0](https://github.com/jowasp/bytecode-securify/blob/master/Screen%20Shot%202016-11-20%20at%2012.31.08%20PM.png)
 This is clean working version of the Bytecodeviewer program latest source code found on master (version 3.0.0)
 The latest master version contains issues with the Maven dependencies that does run properly
 This version is a fully Java Application without any Maven dependencies
