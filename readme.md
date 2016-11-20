@@ -14,4 +14,6 @@ the.bytecode.club.bytecodeviewer.BytecodeViewer
 
 Runtime JRE: Java 1.8
 
-Configure Build path==> Add Library,==> new (add) Lib folder containing all jars to run properly
+Configure Build path==> 
+Add Library==> new (add) Lib folder containing all jars to run properly
+Sources==> Add Resource folder (containing Android apps)
