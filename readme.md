@@ -7,7 +7,7 @@ Many issues encountered in the Maven dependencies have to do with libraries not 
 
 ##Run configurations
 Project:
-Bytecode-securify
+*Bytecode-securify
 
 Main Class:
 the.bytecode.club.bytecodeviewer.BytecodeViewer
@@ -15,5 +15,5 @@ the.bytecode.club.bytecodeviewer.BytecodeViewer
 Runtime JRE: Java 1.8
 
 Configure Build path==> 
-Add Library==> new (add) Lib folder containing all jars to run properly
-Sources==> Add Resource folder (containing Android apps)
+* Add Library==> new (add) Lib folder containing all jars to run properly
+* Sources==> Add Resource folder (containing Android apps)
