@@ -71,6 +71,11 @@ public abstract class Decompiler {
         public DecompilerSettings getSettings() {
             throw new IllegalArgumentException();
         }
+
+		//@Override
+		//public String decompileClassXposed(byte[] b) {
+		//	throw new IllegalArgumentException();
+		//}
     };
 
     public Decompiler() {
@@ -80,6 +85,9 @@ public abstract class Decompiler {
     protected DecompilerSettings settings = new DecompilerSettings(this);
 
     public abstract String decompileClassNode(ClassNode cn, byte[] b);
+    
+    //securifyjo
+    //public abstract String decompileClassXposed(byte[] b);
 
     public abstract void decompileToZip(String zipName);
 

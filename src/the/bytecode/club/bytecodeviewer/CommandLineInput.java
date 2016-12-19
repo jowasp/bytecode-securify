@@ -158,7 +158,7 @@ public class CommandLineInput {
                 use = Decompiler.PROCYON;
             }
 
-            System.out.println("Decompiling " + input.getAbsolutePath() + " with " + use.getName());
+            System.out.println("Decompiling - test " + input.getAbsolutePath() + " with " + use.getName());
             BytecodeViewer.openFiles(new File[]{input}, false);
             String containerName = BytecodeViewer.files.get(0).name;
             Thread.sleep(5 * 1000);

@@ -110,7 +110,7 @@ import java.util.Map;
 public class BytecodeViewer {
 
     /*per version*/
-    public static final String version = "3.0.0";
+    public static final String version = "3.0.0 - Xposed Modified Version By Securify";
     public static final String krakatauVersion = "8";
     public static final String enjarifyVersion = "2";
     public static final boolean previewCopy = false;
@@ -159,9 +159,9 @@ public class BytecodeViewer {
             System.setSecurityManager(sm);
             System.out.println("https://the.bytecode.club - Created by @Konloch and @samczsun - Bytecode Viewer " + version);
             CommandLineInput input = new CommandLineInput(args);
-            if (previewCopy && !input.containsCommand())
+            /*if (previewCopy && !input.containsCommand())
                 showMessage("WARNING: This is a preview/dev copy, you WON'T be alerted when " + version + " is actually out if you use this." + nl +
-                        "Make sure to watch the repo: https://github.com/Konloch/bytecode-viewer for " + version + "'s release");
+                        "Make sure to watch the repo: https://github.com/Konloch/bytecode-viewer for " + version + "'s release");*/
             if (!filesFile.exists() && !filesFile.createNewFile()) {
                 throw new RuntimeException("Could not create recent files file");
             }
@@ -221,7 +221,7 @@ public class BytecodeViewer {
                         }
                     }
 
-                    JOptionPane pane = new JOptionPane("Your version: " + BytecodeViewer.version + ", latest version: " + version + nl + nl + "Changes since your version:" + nl + changelog + nl + "What would you like to do?");
+                    /*JOptionPane pane = new JOptionPane("Your version: " + BytecodeViewer.version + ", latest version: " + version + nl + nl + "Changes since your version:" + nl + changelog + nl + "What would you like to do?");
                     Object[] options = new String[]{"Open The Download Page", "Download The Updated Jar", "Do Nothing"};
                     pane.setOptions(options);
                     JDialog dialog = pane.createDialog(BytecodeViewer.viewer, "Bytecode Viewer - Outdated Version");
@@ -238,6 +238,7 @@ public class BytecodeViewer {
                             showMessage("Cannot open the page, please manually type it." + nl + "https://github.com/Konloch/bytecode-viewer/releases");
                         }
                     }
+                    
                     if (result == 1) {
                         JFileChooser fc = new JFileChooser();
                         try {
@@ -328,7 +329,7 @@ public class BytecodeViewer {
                             };
                             downloadThread.start();
                         }
-                    }
+                    }*/
                 }
             } catch (Exception e) {
                 e.printStackTrace();

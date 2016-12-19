@@ -50,6 +50,20 @@ public class ClassNodeDecompiler extends Decompiler {
     public String getName() {
         return "Bytecode";
     }
+    
+    public String decompileClassNodeXposed(ClassNode cn, byte[] b) {
+        String containerName = null;
+        for (FileContainer container : BytecodeViewer.files) {
+            String name = cn.name;
+            if (container.getData().containsKey(name)) {
+                if (container.getClassNode(name) == cn)
+                    containerName = container.name;
+            }
+        }
+        System.out.println(containerName);
+
+        return decompile(new PrefixedStringBuilder(), new ArrayList<String>(), containerName, cn).toString();
+    }
 
     public String decompileClassNode(ClassNode cn, byte[] b) {
         String containerName = null;

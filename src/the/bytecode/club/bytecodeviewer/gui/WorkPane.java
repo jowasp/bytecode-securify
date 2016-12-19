@@ -3,6 +3,7 @@ package the.bytecode.club.bytecodeviewer.gui;
 import org.objectweb.asm.tree.ClassNode;
 import the.bytecode.club.bytecodeviewer.BytecodeViewer;
 import the.bytecode.club.bytecodeviewer.FileChangeNotifier;
+import the.bytecode.club.bytecodeviewer.xposedgenerator.*;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -12,7 +13,26 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Comparator;
+import eu.bibl.banalysis.asm.desc.OpcodeInfo;
+
+import org.apache.commons.io.IOUtils;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.*;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.Map;
 
 /***************************************************************************
  * Bytecode Viewer (BCV) - Java & Android Reverse Engineering Suite        *
@@ -49,6 +69,8 @@ public class WorkPane extends VisibleComponent implements ActionListener {
 
 	JPanel buttonPanel;
 	JButton refreshClass;
+	//Securify functionality
+	JButton generateXposedClass;
 
 	HashMap<String, Integer> workingOn = new HashMap<String, Integer>();
 
@@ -71,8 +93,14 @@ public class WorkPane extends VisibleComponent implements ActionListener {
 		refreshClass.addActionListener(this);
 
 		buttonPanel.add(refreshClass);
+		
+		//Xposed 
+		generateXposedClass = new JButton("Generate Xposed Module");
+		generateXposedClass.addActionListener(this);
+		buttonPanel.add(generateXposedClass);
 
 		buttonPanel.setVisible(false);
+
 		getContentPane().add(buttonPanel, BorderLayout.SOUTH);
 
 		tabs.addContainerListener(new ContainerListener() {
@@ -107,6 +135,8 @@ public class WorkPane extends VisibleComponent implements ActionListener {
 	}
 
 	int tabCount = 0;
+
+	protected Component f;
 
 	public void addWorkingFile(final String name, String container, final ClassNode cn) {
 		String key = container + "$" + name;
@@ -185,6 +215,20 @@ public class WorkPane extends VisibleComponent implements ActionListener {
 						}
 					}
 				}
+				
+				//Xposed Generator
+				if (src == generateXposedClass){					
+					//Get actual file class content
+					final Component tabComp = tabs.getSelectedComponent();
+					String className = tabComp.getName();					
+					String containerName = BytecodeViewer.files.get(0).name;									
+					ClassNode classnode = BytecodeViewer.getCurrentlyOpenedClassNode();
+					if (tabComp != null) {			
+						//Call XposedGenerator class
+						XposedGenerator xposed = new XposedGenerator();
+						xposed.ParseChosenFileContent(className,containerName,classnode);						
+					}										
+				}
 			}
 		};
 		t.start();
@@ -196,6 +240,8 @@ public class WorkPane extends VisibleComponent implements ActionListener {
 		}
 		tabs.removeAll();
 		tabs.updateUI();
-	}
+	} 
 
+	 
 }
+

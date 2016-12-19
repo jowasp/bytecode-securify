@@ -46,7 +46,6 @@ public class AllatoriStringDecrypterOptions extends JFrame {
 		btnNewButton.setBounds(6, 56, 232, 23);
 		getContentPane().add(btnNewButton);
 
-
 		JLabel lblNewLabel = new JLabel("Class:");
 		lblNewLabel.setBounds(6, 20, 67, 14);
 		getContentPane().add(lblNewLabel);

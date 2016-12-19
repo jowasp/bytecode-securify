@@ -1191,7 +1191,7 @@ public class MainViewerGUI extends JFrame implements FileChangeNotifier {
 
         setSize(new Dimension(800, 400));
         if (BytecodeViewer.previewCopy)
-            setTitle("Bytecode Viewer " + BytecodeViewer.version + " Preview - https://bytecodeviewer.com | https://the.bytecode.club - @Konloch");
+            setTitle("Bytecode Viewer " + BytecodeViewer.version + " Preview - https://bytecodeviewer.com | https://the.bytecode.club - @Konloch -TESTTT");
         else
             setTitle("Bytecode Viewer " + BytecodeViewer.version + " - https://bytecodeviewer.com | https://the.bytecode.club - @Konloch");
 
