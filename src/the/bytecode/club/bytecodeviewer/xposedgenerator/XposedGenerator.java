@@ -40,20 +40,20 @@ public class XposedGenerator {
 			
 			//Decompile using Fern
 			String decomp  = decompilefern.decompileClassNode(classNode, cont);
-			//String decompileBytecode = decompiler.decompileClassNode(classNode, cont);
 			//String decompileByteToSmali = smaliDecompiler.decompileClassNode(classNode, cont);
 			
-			//Smali output
-			//System.out.println(decompileByteToSmali);
 			String[] xposedTemplateTypes = {"Empty","Parameters","Helper"};
 			JComboBox xposedTemplateList = new JComboBox(xposedTemplateTypes);
 			 //Set results of parsed methods into an a list 
 			List<String> methodsExtracted = ProcessContentExtractedClass(decomp);
 			String packgExtracted = ProcessContentExtractedPackage(decomp);
 			System.out.println("PACKAGE NAME: " +packgExtracted);
-			JComboBox<String> cb = new JComboBox<>(methodsExtracted.toArray(new String[methodsExtracted.size()]));     	      
-			
-			//Create Panel elements		   		      
+			     	  
+			//Get a clean list
+			List<String> cleanMethods = null;
+			cleanMethods = ProcessCleanMethodsAll(methodsExtracted);
+			JComboBox<String> cb = new JComboBox<>(cleanMethods.toArray(new String[cleanMethods.size()]));
+			//Add Panel elements		   		      
 		    //Start Panel
 		      JPanel myPanel = new JPanel();
 		      myPanel.add(Box.createHorizontalStrut(15));
@@ -62,40 +62,44 @@ public class XposedGenerator {
 
 		     //output methods to pane box
 				int result = JOptionPane.showConfirmDialog(null, myPanel, 
-						"Choose Template and Xposed Module", JOptionPane.OK_CANCEL_OPTION);
-			      if (result == JOptionPane.OK_OPTION) {	
-			    	 String ParsedContent = null; 
+				 "Choose Template and Method for Xposed Module", JOptionPane.OK_CANCEL_OPTION);
+			      if (result == JOptionPane.OK_OPTION) {
+			    	//clear list
+					cleanMethods.clear();
+					cleanMethods.removeAll(cleanMethods);
 			    	  //Read Chosen Class
 			    	 System.out.println("SELECTED CLASS is" + cb.getSelectedItem());
 			    	 String selectedClass = cb.getSelectedItem().toString();
 			    	 String selectedXposedTemplate = xposedTemplateList.getSelectedItem().toString();
-					 //ParsedContent = decompileBytecode;				 
+			    	
 			    	 //WriteXposed Class with extracted data				
 			    	 WriteXposedModule(selectedClass, packgExtracted, classname,selectedXposedTemplate);
-		      }				
+			    	 cleanMethods.removeAll(cleanMethods);			    	 
+			      }	
+			      
 	}
 	
 	public void WriteXposedModule(String functionToHook, String packageName, String classToHook, String template) {
 		if (template == "Empty") 
 		{
 		 try {			 
-			 //TODO: Change to dynamic path			 
+			 //TODO: Change to dynamic path	depending on the template Xposed module		 
 			 File file = new File("/Users/johannacuriel/Documents/Java-Classes/XposedModule/app/src/main/java/androidpentesting/com/xposedmodule/XposedClassTest.java");
 		
-			// if file doesnt exists, then create it
+			// if file doesn't exists, then create it
 						if (!file.exists()) {
 							file.createNewFile();
 						}
-						//TODO: extract the package name only
-						String packageNameOnly = packageName.substring(8,packageName.length() - 2 );
-						
+						//Extract the package name only
+						String packageNameOnly = packageName.substring(8,packageName.length() - 2 );						
 						String classToHookNameOnly = classToHook.substring(19);
 						String functionToHookOnly = functionToHook.substring(18);
 						System.out.println(classToHookNameOnly);
 						System.out.println(packageNameOnly);
-						//
+						
+						//Write Xposed Class 
 						String XposedClassText = 
-								"import de.robv.android.xposed.IXposedHookLoadPackage" + "\r\n" +
+								"import de.robv.android.xposed.IXposedHookLoadPackage;" + "\r\n" +
 								 "\r\n" +
 								"import de.robv.android.xposed.XC_MethodHook;" +"\r\n" +
 								"import de.robv.android.xposed.XposedBridge;" +"\r\n" +
@@ -104,10 +108,10 @@ public class XposedGenerator {
 								"public class XposedClass implements IXposedHookLoadPackage {"+"\r\n" +"\r\n" +
 								"	public void handleLoadPackage(final LoadPackageParam lpparam) throws Throwable {" + "\r\n" +"\r\n" +
 								"		String classToHook = "+"'"+packageNameOnly+ "."+ classToHookNameOnly + "';"+ "\r\n" +
-								"		String functionToHook = "+ functionToHook + "\r\n" +
-								"		if (lpparam.packageName.equals("+packageName+")){"+ "\r\n" +
-								"			XposedBridge.log('Loaded app' + lpparam."+packageName+");"+ "\r\n" +"\r\n" +
-								"			findAndHookMethod("+ classToHook + ", lpparam.classLoader, "+ functionToHook + ", int.class,"+ "\r\n" +
+								"		String functionToHook = "+"'"+ functionToHookOnly + "\r\n" +
+								"		if (lpparam.packageName.equals("+"'"+packageNameOnly+ "'"+")){"+ "\r\n" +
+								"			XposedBridge.log('Loaded app' + lpparam."+packageNameOnly+");"+ "\r\n" +"\r\n" +
+								"			findAndHookMethod("+ classToHookNameOnly + ", lpparam.classLoader, "+ functionToHookOnly + ", int.class,"+ "\r\n" +
 				                "			new XC_MethodHook() {"+ "\r\n" +
 				                "			@Override"+ "\r\n" +
 				                "		protected void beforeHookedMethod(MethodHookParam param) throws Throwable {"+ "\r\n" +
@@ -115,6 +119,7 @@ public class XposedGenerator {
 				                "			}"+ "\r\n" +
 				                "		});"+"\r\n" +
 				                "	}"+ "\r\n" +
+				                "}"+ "\r\n" +
 				                "}"+ "\r\n" +
 				                "}"+ "\r\n" 
 								;
@@ -135,7 +140,7 @@ public class XposedGenerator {
 		Scanner scanner = null;
 		try{
 			 scanner = new Scanner(contentFile);		
-					  //Set pattern Public Class
+					  //@TODO : Improve patterns to match other excepts 'public'
 					   String regexclass = "public";
 					   //String regexPkg = "package";
 					   Pattern pattern = Pattern.compile(regexclass, Pattern.CASE_INSENSITIVE);
@@ -178,6 +183,27 @@ public class XposedGenerator {
 				scanner.close();
 		}
 		}
+	
+	private static List <String> ProcessCleanMethodsAll(List<String> rawMethods)
+	{
+		for (String m:rawMethods)
+		{
+			//Exclude class declaration
+			//TODO:add a list containing all possible types
+			if (m.contains("extends") || (m.contains("implements") || (!m.contains("("))))
+			{
+				continue;
+			}
+			else
+			{
+				cleanMethodsNames.add(m);
+			}
+		
+		}
+		return cleanMethodsNames;
+		
+		
+	}
 	
 	private static String ProcessContentExtractedPackage(String contentFile){
 		Scanner scanner = null;
@@ -223,6 +249,7 @@ public class XposedGenerator {
 
 	//PRIVATE
 	private static List<String> methodsNames = new ArrayList<String>();
+	private static List<String> cleanMethodsNames = new ArrayList<String>();
 	private static String foundpckg;
 	private final static Charset ENCODING = StandardCharsets.UTF_8;		
 }
