@@ -73,7 +73,7 @@ public class XposedGenerator {
 			    	 String selectedXposedTemplate = xposedTemplateList.getSelectedItem().toString();
 			    	
 			    	 //WriteXposed Class with extracted data				
-			    	 WriteXposedModule(selectedClass, packgExtracted, classname,selectedXposedTemplate);
+			    	 WriteXposedModule(selectedClass, packgExtracted, classname, selectedXposedTemplate);
 			    	 cleanMethods.removeAll(cleanMethods);			    	 
 			      }	
 			      
@@ -92,26 +92,34 @@ public class XposedGenerator {
 						}
 						//Extract the package name only
 						String packageNameOnly = packageName.substring(8,packageName.length() - 2 );						
-						String classToHookNameOnly = classToHook.substring(19);
-						String functionToHookOnly = functionToHook.substring(18);
-						System.out.println(classToHookNameOnly);
+						String classToHookNameOnly = classToHook.substring(0, packageName.length() - 9);
+						String[] classClean = classToHookNameOnly.split("\\/");
+						String[] functionSplitValues = functionToHook.split("\\s+");
+						//select
+						String onlyClass = classClean[classClean.length-1];
+						//String onlyFunctionParateses = functionSplitValues[functionSplitValues.length-2];
+						
+						String onlyFunction = CleanUpFuunction(functionSplitValues);
+						//String functionToHookOnly = "dummy function";
+						System.out.println(onlyClass);
 						System.out.println(packageNameOnly);
 						
 						//Write Xposed Class 
 						String XposedClassText = 
+								"package androidpentesting.com.xposedmodule;"+ "\r\n" +
 								"import de.robv.android.xposed.IXposedHookLoadPackage;" + "\r\n" +
 								 "\r\n" +
 								"import de.robv.android.xposed.XC_MethodHook;" +"\r\n" +
 								"import de.robv.android.xposed.XposedBridge;" +"\r\n" +
 								"import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;"+"\r\n" +
 								"import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;"+"\r\n" +"\r\n" +
-								"public class XposedClass implements IXposedHookLoadPackage {"+"\r\n" +"\r\n" +
+								"public class XposedClassTest implements IXposedHookLoadPackage {"+"\r\n" +"\r\n" +
 								"	public void handleLoadPackage(final LoadPackageParam lpparam) throws Throwable {" + "\r\n" +"\r\n" +
-								"		String classToHook = "+"'"+packageNameOnly+ "."+ classToHookNameOnly + "';"+ "\r\n" +
-								"		String functionToHook = "+"'"+ functionToHookOnly + "\r\n" +
-								"		if (lpparam.packageName.equals("+"'"+packageNameOnly+ "'"+")){"+ "\r\n" +
-								"			XposedBridge.log('Loaded app' + lpparam."+packageNameOnly+");"+ "\r\n" +"\r\n" +
-								"			findAndHookMethod("+ classToHookNameOnly + ", lpparam.classLoader, "+ functionToHookOnly + ", int.class,"+ "\r\n" +
+								"		String classToHook = " + "\"" + packageNameOnly + "." + onlyClass + "\" ;" + "\r\n" +
+								"		String functionToHook = "+"\""+ onlyFunction+"\";"+"\r\n" +
+								"		if (lpparam.packageName.equals("+"\""+packageNameOnly+ "\""+")){"+ "\r\n" +
+								"			XposedBridge.log(" + "\" Loaded app: \" " + " + lpparam.packageName);"+ "\r\n" +"\r\n" +
+								"			findAndHookMethod("+"\""+onlyClass+"\"" + ", lpparam.classLoader, "+" \"" +onlyFunction + "\""+", int.class,"+ "\r\n" +
 				                "			new XC_MethodHook() {"+ "\r\n" +
 				                "			@Override"+ "\r\n" +
 				                "		protected void beforeHookedMethod(MethodHookParam param) throws Throwable {"+ "\r\n" +
@@ -120,8 +128,8 @@ public class XposedGenerator {
 				                "		});"+"\r\n" +
 				                "	}"+ "\r\n" +
 				                "}"+ "\r\n" +
-				                "}"+ "\r\n" +
 				                "}"+ "\r\n" 
+				                //"}"+ "\r\n" 
 								;
 						FileWriter fw = new FileWriter(file.getAbsoluteFile());
 						BufferedWriter bw = new BufferedWriter(fw);
@@ -205,6 +213,29 @@ public class XposedGenerator {
 		
 	}
 	
+	private static String CleanUpFuunction(String[] rawFunction)
+	{
+		String onlyFunc = "functiondummy";
+			for (String m:rawFunction)
+			{
+				if(m.contains("("))
+				{					
+					String[] functions = m.split("[ ,()]+");
+					onlyFunc = functions[functions.length -1];
+					return onlyFunc;
+				}
+				else
+				{
+					continue;
+				}
+			}
+
+			return onlyFunc;
+			
+		}
+	
+
+	
 	private static String ProcessContentExtractedPackage(String contentFile){
 		Scanner scanner = null;
 		try {
@@ -250,6 +281,7 @@ public class XposedGenerator {
 	//PRIVATE
 	private static List<String> methodsNames = new ArrayList<String>();
 	private static List<String> cleanMethodsNames = new ArrayList<String>();
+	private static List<String> cleanFunctionNames = new ArrayList<String>();
 	private static String foundpckg;
 	private final static Charset ENCODING = StandardCharsets.UTF_8;		
 }
