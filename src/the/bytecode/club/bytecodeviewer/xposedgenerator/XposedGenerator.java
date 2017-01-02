@@ -4,25 +4,19 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.swing.Box;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import org.objectweb.asm.tree.ClassNode;
-import the.bytecode.club.bytecodeviewer.decompilers.bytecode.ClassNodeDecompiler;
 import the.bytecode.club.bytecodeviewer.BytecodeViewer;
 import the.bytecode.club.bytecodeviewer.decompilers.FernFlowerDecompiler;
-import the.bytecode.club.bytecodeviewer.decompilers.SmaliDisassembler;
 
 public class XposedGenerator {	
 	public String decompileClassNode(ClassNode cn, byte[] b) {
@@ -31,18 +25,17 @@ public class XposedGenerator {
 	 	
 	public void ParseChosenFileContent(String classname, String containerName, ClassNode classNode){
 		
+		try{
 		 //Parse content - Extract methods after APK /JAR has been extracted
 			byte[] cont = BytecodeViewer.getFileContents(classname.toString());
-			ClassNodeDecompiler decompiler = new ClassNodeDecompiler();
 			//Use one of the decompilers
+			//TODO:Allow users to select other decompilers?
 			FernFlowerDecompiler decompilefern = new FernFlowerDecompiler();
-			//SmaliDisassembler smaliDecompiler = new SmaliDisassembler();
 			
 			//Decompile using Fern
 			String decomp  = decompilefern.decompileClassNode(classNode, cont);
-			//String decompileByteToSmali = smaliDecompiler.decompileClassNode(classNode, cont);
-			
 			String[] xposedTemplateTypes = {"Empty","Parameters","Helper"};
+			@SuppressWarnings({ "unchecked", "rawtypes" })
 			JComboBox xposedTemplateList = new JComboBox(xposedTemplateTypes);
 			 //Set results of parsed methods into an a list 
 			List<String> methodsExtracted = ProcessContentExtractedClass(decomp);
@@ -51,31 +44,51 @@ public class XposedGenerator {
 			     	  
 			//Get a clean list
 			List<String> cleanMethods = null;
+			//clear list			
 			cleanMethods = ProcessCleanMethodsAll(methodsExtracted);
-			JComboBox<String> cb = new JComboBox<>(cleanMethods.toArray(new String[cleanMethods.size()]));
-			//Add Panel elements		   		      
-		    //Start Panel
+			if (!cleanMethods.isEmpty())
+			{
+			 JComboBox<String> cb = new JComboBox<>(cleanMethods.toArray(new String[cleanMethods.size()]));
+
+			 //Add Panel elements		   		      
+		     //Start Panel
 		      JPanel myPanel = new JPanel();
+		      JPanel myPanelXposed = new JPanel();
 		      myPanel.add(Box.createHorizontalStrut(15));
-		      myPanel.add(xposedTemplateList);
+		      myPanel.add(xposedTemplateList);		      
 		      myPanel.add(cb);
 
 		     //output methods to pane box
 				int result = JOptionPane.showConfirmDialog(null, myPanel, 
-				 "Choose Template and Method for Xposed Module", JOptionPane.OK_CANCEL_OPTION);
-			      if (result == JOptionPane.OK_OPTION) {
-			    	//clear list
-					cleanMethods.clear();
-					cleanMethods.removeAll(cleanMethods);
+				"Choose Template and Method for Xposed Module", JOptionPane.OK_CANCEL_OPTION);
+				
+			        if (result == JOptionPane.OK_OPTION) {			    	
 			    	  //Read Chosen Class
 			    	 System.out.println("SELECTED CLASS is" + cb.getSelectedItem());
 			    	 String selectedClass = cb.getSelectedItem().toString();
 			    	 String selectedXposedTemplate = xposedTemplateList.getSelectedItem().toString();
 			    	
-			    	 //WriteXposed Class with extracted data				
-			    	 WriteXposedModule(selectedClass, packgExtracted, classname, selectedXposedTemplate);
-			    	 cleanMethods.removeAll(cleanMethods);			    	 
+			    	 //WriteXposed Class with extracted data
+			    	 try{
+			    	      WriteXposedModule(selectedClass, packgExtracted, classname, selectedXposedTemplate);
+			    	      //let user know module has been generated
+			    	      JOptionPane.showMessageDialog(myPanelXposed,"Xposed Module Generated");
+			    	      //cleanMethods.removeAll(cleanMethods);	
+			    	 }
+			    	 catch(IllegalArgumentException e)
+			    	 {
+			    		 e.printStackTrace(); 
+			    		 JOptionPane.showMessageDialog(myPanelXposed,"Error" + e.toString());
+			    	 }
+			        }
 			      }	
+		}
+		catch (IllegalArgumentException e)
+		{
+			e.printStackTrace();
+			JPanel myPanelXposed = new JPanel();
+			JOptionPane.showMessageDialog(myPanelXposed,"Error" + e.toString());
+		}
 			      
 	}
 	
@@ -129,7 +142,6 @@ public class XposedGenerator {
 				                "	}"+ "\r\n" +
 				                "}"+ "\r\n" +
 				                "}"+ "\r\n" 
-				                //"}"+ "\r\n" 
 								;
 						FileWriter fw = new FileWriter(file.getAbsoluteFile());
 						BufferedWriter bw = new BufferedWriter(fw);
@@ -139,7 +151,9 @@ public class XposedGenerator {
 	
 						System.out.println("Done");
 		 		} catch (IOException e) {
-			 e.printStackTrace();
+		 			JPanel myPanelXposed = new JPanel();
+					JOptionPane.showMessageDialog(myPanelXposed,"Error" + e.toString());
+					e.printStackTrace();
 		 	}
 		}
 	 }
@@ -234,8 +248,6 @@ public class XposedGenerator {
 			
 		}
 	
-
-	
 	private static String ProcessContentExtractedPackage(String contentFile){
 		Scanner scanner = null;
 		try {
@@ -258,17 +270,36 @@ public class XposedGenerator {
 					   foundpckg  = "";
 				   }
 			   }
-
-		   if (foundpckg.isEmpty() || foundpckg == null)
+		  try
+		   //
 		   {
-			   foundpckg  = "No Package Found";				   
-		   }				   		
+			  if (foundpckg.isEmpty() || foundpckg == null)
+			      foundpckg  = "No Package Found";	
+			   				
+		   }
+		  catch(NullPointerException e)
+		  {
+			  JPanel myPanelXposed = new JPanel();
+			  JOptionPane.showMessageDialog(myPanelXposed,"Error - no package was found in the selected class: " + e.toString());
+		  }
+		  finally
+			{
+				if(scanner != null)
+					scanner.close();
+			}
 		}
-		finally
+		catch(IllegalArgumentException e)
+		  {
+			  JPanel myPanelXposed = new JPanel();
+			  JOptionPane.showMessageDialog(myPanelXposed,"Error" + e.toString());
+			  if(scanner != null)
+			  scanner.close();
+		  }
+		 finally
 		{
 			if(scanner != null)
 				scanner.close();
-		}
+		 }
 		return foundpckg;
 
 }
@@ -281,7 +312,5 @@ public class XposedGenerator {
 	//PRIVATE
 	private static List<String> methodsNames = new ArrayList<String>();
 	private static List<String> cleanMethodsNames = new ArrayList<String>();
-	private static List<String> cleanFunctionNames = new ArrayList<String>();
-	private static String foundpckg;
-	private final static Charset ENCODING = StandardCharsets.UTF_8;		
+	private static String foundpckg;	
 }
